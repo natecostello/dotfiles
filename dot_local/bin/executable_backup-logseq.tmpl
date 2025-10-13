@@ -2,23 +2,23 @@
 set -euo pipefail
 
 # === Settings ===
-SRC="$HOME/Logseq"                                # Source directory
-ROOT="LogseqBackup"                               # Remote root under encrypted remote
-WEEKLY_DOW="Sun"                                  # Weekly snapshot day
+SRC="$HOME/Logseq"
+ROOT="LogseqBackup"
+WEEKLY_DOW="Sun"
 LOGDIR="$HOME/Library/Logs"
 LOGFILE="$LOGDIR/backup-logseq.log"
 
 mkdir -p "$LOGDIR"
-TS() { date +"%FT%T%z"; }                         # Portable ISO-8601 timestamp
+TS() { date +"%FT%T%z"; }
 
 echo "===== [$(TS)] backup-logseq start ====="
 
-# === Fetch secrets from Keychain ===
+# === Secrets ===
 PASS="$(security find-generic-password -a "$USER" -s rclone/logseq/crypt_passphrase -w)"
 TOKEN="$(security find-generic-password -a "$USER" -s rclone/logseq/dropbox_token -w)"
 OBSC_PASS="$(rclone obscure "$PASS")"
 
-# === Define rclone remotes via env (no rclone.conf on disk) ===
+# === rclone remotes via env ===
 export RCLONE_CONFIG_LOGSEQDRIVE_TYPE=dropbox
 export RCLONE_CONFIG_LOGSEQDRIVE_TOKEN="$TOKEN"
 
@@ -28,14 +28,13 @@ export RCLONE_CONFIG_LOGSEQCRYPT_PASSWORD="$OBSC_PASS"
 export RCLONE_CONFIG_LOGSEQCRYPT_PASSWORD2="$OBSC_PASS"
 export RCLONE_CONFIG_LOGSEQCRYPT_FILENAME_ENCODING=base32768
 
-# Convenience remote paths
 DRIVE="LOGSEQDRIVE:${ROOT}"
-CRYPT="LOGSEQCRYPT:"                                 # NOTE: no ${ROOT} here
+CRYPT="LOGSEQCRYPT:"
 
 # === Date labels ===
-TODAY="$(date +%F)"          # YYYY-MM-DD
-WEEK="$(date +%G-%V)"        # ISO week (e.g., 2025-41)
-MONTH="$(date +%Y-%m)"       # YYYY-MM
+TODAY="$(date +%F)"
+WEEK="$(date +%G-%V)"
+MONTH="$(date +%Y-%m)"
 
 DEST_CURRENT="${CRYPT}current"
 DEST_CHANGES="${CRYPT}changes/${TODAY}"
@@ -43,7 +42,7 @@ SNAP_DAILY="${CRYPT}snapshots/daily/${TODAY}"
 SNAP_WEEKLY="${CRYPT}snapshots/weekly/${WEEK}"
 SNAP_MONTHLY="${CRYPT}snapshots/monthly/${MONTH}"
 
-# === Sync with backup-dir for changed/deleted files ===
+# === Sync with backup-dir ===
 echo "[$(TS)] Syncing $SRC -> $DEST_CURRENT with backup-dir $DEST_CHANGES"
 rclone sync "$SRC" "$DEST_CURRENT" \
   --backup-dir "$DEST_CHANGES" \
@@ -52,7 +51,7 @@ rclone sync "$SRC" "$DEST_CURRENT" \
   --links \
   --one-file-system
 
-# === Server-side snapshots (encrypted; zero extra upload) ===
+# === Server-side snapshots ===
 echo "[$(TS)] Creating daily snapshot at $SNAP_DAILY"
 rclone copy "$DEST_CURRENT" "$SNAP_DAILY" --fast-list --create-empty-src-dirs
 
@@ -66,16 +65,19 @@ if [[ "$(date +%d)" == "01" ]]; then
   rclone copy "$DEST_CURRENT" "$SNAP_MONTHLY" --fast-list --create-empty-src-dirs
 fi
 
-# === Retention: keep 7 daily, 4 weekly, 12 monthly ===
+# === Retention (POSIX-safe, no mapfile) ===
 prune_keep() {
-  local base="$1" keep="$2"
+  base="$1"; keep="$2"
   echo "[$(TS)] Pruning $base to keep $keep"
-  mapfile -t dirs < <(rclone lsf "$base" --dirs-only --format=p | LC_ALL=C sort)
-  local total="${#dirs[@]}"
-  local del_count=$(( total > keep ? total - keep : 0 ))
-  for ((i=0; i<del_count; i++)); do
-    echo "[$(TS)] Deleting ${base}${dirs[i]}"
-    rclone purge "${base}${dirs[i]}"
+  dirs="$(rclone lsf "$base" --dirs-only --format=p | LC_ALL=C sort || true)"
+  [ -z "$dirs" ] && return 0
+  total="$(printf "%s\n" "$dirs" | wc -l | tr -d " ")"
+  [ "$total" -le "$keep" ] && return 0
+  del_count=$(( total - keep ))
+  printf "%s\n" "$dirs" | head -n "$del_count" | while IFS= read -r d; do
+    [ -z "$d" ] && continue
+    echo "[$(TS)] Deleting ${base}${d}"
+    rclone purge "${base}${d}"
   done
 }
 
@@ -84,17 +86,3 @@ prune_keep "${CRYPT}snapshots/weekly/" 4
 prune_keep "${CRYPT}snapshots/monthly/" 12
 
 echo "===== [$(TS)] backup-logseq done ====="
-prune_keep() {
-  base="$1"; keep="$2"
-  echo "[$(date +"%FT%T%z")] Pruning $base to keep $keep"
-  dirs="$(rclone lsf "$base" --dirs-only --format=p | LC_ALL=C sort || true)"
-  [ -z "$dirs" ] && return 0
-  total="$(printf "%s\n" "$dirs" | wc -l | tr -d " ")"
-  if [ "$total" -le "$keep" ]; then return 0; fi
-  del_count=$(( total - keep ))
-  printf "%s\n" "$dirs" | head -n "$del_count" | while IFS= read -r d; do
-    [ -z "$d" ] && continue
-    echo "[$(date +"%FT%T%z")] Deleting ${base}${d}"
-    rclone purge "${base}${d}"
-  done
-}

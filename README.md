@@ -38,11 +38,15 @@ Module: Logseq Backups (Dropbox, encrypted)
   - Zero-trust filenames using rclone crypt with filename_encoding=base32768 (shorter encrypted names for Dropbox).
   - No rclone.conf stored on disk; env-only remotes set by the script.
   - Run-once chezmoi scripts copy secrets from LastPass to Keychain during apply.
-
-Operational notes:
-- Manual backup run: ~/.local/bin/backup-logseq
-- Logs: ~/Library/Logs/backup-logseq.log (script) and ~/Library/Logs/backup-logseq.launchd.log (launchd)
-- LaunchAgent lifecycle: automatically loaded at login; bootstrap once after apply if needed.
+- Operational notes:
+  - Manual backup run: ~/.local/bin/backup-logseq
+  - List snapshots: `~/.local/bin/list-logseq`
+  - Restore snapshot (safe copy to a new folder):  
+    - `~/.local/bin/restore-logseq daily YYYY-MM-DD`  
+    - `~/.local/bin/restore-logseq weekly YYYY-WW` 
+    - `~/.local/bin/restore-logseq monthly YYYY-MM`
+  - Logs: ~/Library/Logs/backup-logseq.log (script) and ~/Library/Logs/backup-logseq.launchd.log (launchd)
+  - LaunchAgent lifecycle: automatically loaded at login; bootstrap once after apply if needed.
 
 Future modules (placeholders):
 - Restore helpers and disaster recovery — TODO

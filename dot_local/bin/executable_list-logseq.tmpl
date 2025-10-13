@@ -1,0 +1,23 @@
+#!/bin/bash
+set -euo pipefail
+
+# Load secrets from Keychain
+P="$(security find-generic-password -a "$USER" -s rclone/logseq/crypt_passphrase -w)"
+T="$(security find-generic-password -a "$USER" -s rclone/logseq/dropbox_token -w)"
+O="$(rclone obscure "$P")"
+
+# rclone env (no config file)
+export RCLONE_CONFIG_LOGSEQDRIVE_TYPE=dropbox
+export RCLONE_CONFIG_LOGSEQDRIVE_TOKEN="$T"
+export RCLONE_CONFIG_LOGSEQCRYPT_TYPE=crypt
+export RCLONE_CONFIG_LOGSEQCRYPT_REMOTE="LOGSEQDRIVE:LogseqBackup"
+export RCLONE_CONFIG_LOGSEQCRYPT_PASSWORD="$O"
+export RCLONE_CONFIG_LOGSEQCRYPT_PASSWORD2="$O"
+export RCLONE_CONFIG_LOGSEQCRYPT_FILENAME_ENCODING=base32768
+
+echo "[daily]"
+rclone lsf LOGSEQCRYPT:snapshots/daily --dirs-only --format=p || true
+echo "[weekly]"
+rclone lsf LOGSEQCRYPT:snapshots/weekly --dirs-only --format=p || true
+echo "[monthly]"
+rclone lsf LOGSEQCRYPT:snapshots/monthly --dirs-only --format=p || true
