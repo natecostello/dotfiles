@@ -1,0 +1,11 @@
+[user]
+	name = Nate Costello
+	email = natecostello@gmail.com
+[core]
+	editor = nano
+[http]
+	postBuffer = 524288000
+	maxRequestBuffer = 524288000
+	version = HTTP/1.1
+[init]
+	defaultBranch = main
