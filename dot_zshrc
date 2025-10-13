@@ -33,3 +33,8 @@ eval "$(pyenv init -)"
 # --- iTerm2 shell integration (enables “select command/output”, marks, etc.) ---
 [[ -r ~/.iterm2_shell_integration.zsh ]] && source ~/.iterm2_shell_integration.zsh
 
+# --- zsh-autosuggestions ---
+source "$(brew --prefix)/share/zsh-autosuggestions/zsh-autosuggestions.zsh"
+
+# --- zsh-syntax-highlighting (load LAST, after autosuggestions) ---
+source "$(brew --prefix)/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh"
