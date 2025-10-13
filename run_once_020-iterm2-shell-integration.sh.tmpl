@@ -1,0 +1,26 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Only on macOS; iTerm2-only feature
+if [[ "$(uname -s)" != "Darwin" ]]; then
+  exit 0
+fi
+
+# If the integration file already exists, skip
+if [[ -f "${HOME}/.iterm2_shell_integration.zsh" ]]; then
+  echo "iTerm2 shell integration already present; skipping."
+  exit 0
+fi
+
+# If iTerm2 isn't installed yet, it's still fine—this just drops the files in place.
+# Install official shell integration + utilities
+curl -Ls https://iterm2.com/shell_integration/install_shell_integration_and_utilities.sh | bash
+
+# Safety check
+if [[ -f "${HOME}/.iterm2_shell_integration.zsh" ]]; then
+  echo "iTerm2 shell integration installed."
+else
+  echo "Failed to install iTerm2 shell integration." >&2
+  exit 1
+fi
+
