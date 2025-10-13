@@ -1,0 +1,86 @@
+#!/bin/bash
+set -euo pipefail
+
+# === Settings ===
+SRC="$HOME/Logseq"                                # Source directory
+ROOT="LogseqBackup"                               # Remote root under encrypted remote
+WEEKLY_DOW="Sun"                                  # Weekly snapshot day
+LOGDIR="$HOME/Library/Logs"
+LOGFILE="$LOGDIR/backup-logseq.log"
+
+mkdir -p "$LOGDIR"
+TS() { date +"%FT%T%z"; }                         # Portable ISO-8601 timestamp
+
+echo "===== [$(TS)] backup-logseq start ====="
+
+# === Fetch secrets from Keychain ===
+PASS="$(security find-generic-password -a "$USER" -s rclone/logseq/crypt_passphrase -w)"
+TOKEN="$(security find-generic-password -a "$USER" -s rclone/logseq/dropbox_token -w)"
+OBSC_PASS="$(rclone obscure "$PASS")"
+
+# === Define rclone remotes via env (no rclone.conf on disk) ===
+export RCLONE_CONFIG_LOGSEQDRIVE_TYPE=dropbox
+export RCLONE_CONFIG_LOGSEQDRIVE_TOKEN="$TOKEN"
+
+export RCLONE_CONFIG_LOGSEQCRYPT_TYPE=crypt
+export RCLONE_CONFIG_LOGSEQCRYPT_REMOTE="LOGSEQDRIVE:${ROOT}"
+export RCLONE_CONFIG_LOGSEQCRYPT_PASSWORD="$OBSC_PASS"
+export RCLONE_CONFIG_LOGSEQCRYPT_PASSWORD2="$OBSC_PASS"
+export RCLONE_CONFIG_LOGSEQCRYPT_FILENAME_ENCODING=base32768
+
+# Convenience remote paths
+DRIVE="LOGSEQDRIVE:${ROOT}"
+CRYPT="LOGSEQCRYPT:"                                 # NOTE: no ${ROOT} here
+
+# === Date labels ===
+TODAY="$(date +%F)"          # YYYY-MM-DD
+WEEK="$(date +%G-%V)"        # ISO week (e.g., 2025-41)
+MONTH="$(date +%Y-%m)"       # YYYY-MM
+
+DEST_CURRENT="${CRYPT}current"
+DEST_CHANGES="${CRYPT}changes/${TODAY}"
+SNAP_DAILY="${CRYPT}snapshots/daily/${TODAY}"
+SNAP_WEEKLY="${CRYPT}snapshots/weekly/${WEEK}"
+SNAP_MONTHLY="${CRYPT}snapshots/monthly/${MONTH}"
+
+# === Sync with backup-dir for changed/deleted files ===
+echo "[$(TS)] Syncing $SRC -> $DEST_CURRENT with backup-dir $DEST_CHANGES"
+rclone sync "$SRC" "$DEST_CURRENT" \
+  --backup-dir "$DEST_CHANGES" \
+  --filter-from "$HOME/.config/rclone/filters/logseq-backup.txt" \
+  --fast-list \
+  --links \
+  --one-file-system
+
+# === Server-side snapshots (encrypted; zero extra upload) ===
+echo "[$(TS)] Creating daily snapshot at $SNAP_DAILY"
+rclone copy "$DEST_CURRENT" "$SNAP_DAILY" --fast-list --create-empty-src-dirs
+
+if [[ "$(date +%a)" == "$WEEKLY_DOW" ]]; then
+  echo "[$(TS)] Creating weekly snapshot at $SNAP_WEEKLY"
+  rclone copy "$DEST_CURRENT" "$SNAP_WEEKLY" --fast-list --create-empty-src-dirs
+fi
+
+if [[ "$(date +%d)" == "01" ]]; then
+  echo "[$(TS)] Creating monthly snapshot at $SNAP_MONTHLY"
+  rclone copy "$DEST_CURRENT" "$SNAP_MONTHLY" --fast-list --create-empty-src-dirs
+fi
+
+# === Retention: keep 7 daily, 4 weekly, 12 monthly ===
+prune_keep() {
+  local base="$1" keep="$2"
+  echo "[$(TS)] Pruning $base to keep $keep"
+  mapfile -t dirs < <(rclone lsf "$base" --dirs-only --format=p | LC_ALL=C sort)
+  local total="${#dirs[@]}"
+  local del_count=$(( total > keep ? total - keep : 0 ))
+  for ((i=0; i<del_count; i++)); do
+    echo "[$(TS)] Deleting ${base}${dirs[i]}"
+    rclone purge "${base}${dirs[i]}"
+  done
+}
+
+prune_keep "${CRYPT}snapshots/daily/" 7
+prune_keep "${CRYPT}snapshots/weekly/" 4
+prune_keep "${CRYPT}snapshots/monthly/" 12
+
+echo "===== [$(TS)] backup-logseq done ====="

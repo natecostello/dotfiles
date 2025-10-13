@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd"\>
+<plist version="1.0">
+<dict>
+  <key>Label</key>
+  <string>com.ncos.backup-logseq</string>
+
+  <key>ProgramArguments</key>
+  <array>
+    <string>{{ .chezmoi.homeDir }}/.local/bin/backup-logseq</string>
+  </array>
+
+  <key>WorkingDirectory</key>
+  <string>{{ .chezmoi.homeDir }}</string>
+
+  <!-- Run every day at 10:00 local time -->
+  <key>StartCalendarInterval</key>
+  <dict>
+    <key>Hour</key><integer>10</integer>
+    <key>Minute</key><integer>0</integer>
+  </dict>
+
+  <!-- Separate launchd log (script also writes its own log) -->
+  <key>StandardOutPath</key>
+  <string>{{ .chezmoi.homeDir }}/Library/Logs/backup-logseq.launchd.log</string>
+  <key>StandardErrorPath</key>
+  <string>{{ .chezmoi.homeDir }}/Library/Logs/backup-logseq.launchd.log</string>
+
+  <!-- Schedule-only; do not run immediately on load -->
+  <key>RunAtLoad</key>
+  <false/>
+</dict>
+</plist>

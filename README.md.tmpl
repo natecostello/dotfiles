@@ -1,0 +1,54 @@
+# Machine Setup with chezmoi (repo skeleton)
+
+Purpose:
+- Single public repo to bootstrap and manage an entire macOS machine.
+- No secrets stored in the repo; secrets fetched at apply time (e.g., LastPass -> Keychain).
+- Designed to grow: add modules over time (shell, editors, tools, services).
+
+Bootstrap (high level):
+- Install core tools (brew, chezmoi, any CLIs needed).
+- Initialize this repo with chezmoi and apply.
+- Sign into secret manager (e.g., LastPass CLI) so run-once scripts can hydrate Keychain.
+- Load any LaunchAgents installed by the repo.
+
+Secret sources (inventory):
+- LastPass CLI for initial secrets and re-installs.
+- macOS Keychain for unattended daily operations.
+- Naming convention: namespace paths like rclone/<area>/<name> to keep items discoverable.
+
+Modules (add more over time):
+- Logseq Backups (Dropbox, rclone crypt) — documented below.
+- Shell and dotfiles (zsh, git, SSH) — TODO.
+- Editors/IDEs (Neovim, VS Code) — TODO.
+- Dev tools (Homebrew taps, language runtimes) — TODO.
+- Apps (casks) — TODO.
+- System tweaks (defaults write) — TODO.
+
+Module: Logseq Backups (Dropbox, encrypted)
+- Source path: ~/Logseq
+- Script installed: ~/.local/bin/backup-logseq
+- Schedule: LaunchAgent ~/Library/LaunchAgents/com.ncos.backup-logseq.plist (runs daily 10:00)
+- Remote layout (encrypted): LogseqBackup/current, changes/YYYY-MM-DD, snapshots/{daily,weekly,monthly}/…
+- Retention: keep 7 daily, 4 weekly, 12 monthly snapshots
+- Excludes: logseq/.recycle/**, logseq/bak/**, .git/**, OS temp files
+- Secrets:
+  - Passphrase: LastPass rclone/logseq_crypt_passphrase -> Keychain rclone/logseq/crypt_passphrase
+  - Dropbox token (JSON): LastPass rclone/dropbox_token -> Keychain rclone/logseq/dropbox_token
+- Notes:
+  - Zero-trust filenames using rclone crypt with filename_encoding=base32768 (shorter encrypted names for Dropbox).
+  - No rclone.conf stored on disk; env-only remotes set by the script.
+  - Run-once chezmoi scripts copy secrets from LastPass to Keychain during apply.
+
+Operational notes:
+- Manual backup run: ~/.local/bin/backup-logseq
+- Logs: ~/Library/Logs/backup-logseq.log (script) and ~/Library/Logs/backup-logseq.launchd.log (launchd)
+- LaunchAgent lifecycle: automatically loaded at login; bootstrap once after apply if needed.
+
+Future modules (placeholders):
+- Restore helpers and disaster recovery — TODO
+- Workstation onboarding checklist — TODO
+- Machine-specific overrides — TODO
+
+Contributing to yourself:
+- Keep module docs here short; link out to dedicated NOTES files as modules get larger.
+- Prefer run-once scripts for bootstrapping tasks; avoid manual steps on re-installs.

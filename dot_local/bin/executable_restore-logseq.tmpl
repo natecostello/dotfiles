@@ -1,0 +1,52 @@
+#!/bin/bash
+set -euo pipefail
+
+usage() {
+  echo "Usage: $0 <daily|weekly|monthly> <DATE> [DEST]"
+  echo "  DATE formats:"
+  echo "    daily:   YYYY-MM-DD"
+  echo "    weekly:  YYYY-WW    (ISO week)"
+  echo "    monthly: YYYY-MM"
+  exit 1
+}
+
+[ $# -lt 2 ] && usage
+TIER="$1"
+DATE="$2"
+DEST="${3:-"$HOME/Logseq-RESTORE-${TIER}-${DATE}"}"
+
+case "$TIER" in
+  daily)   SNAP="LOGSEQCRYPT:snapshots/daily/${DATE}" ;;
+  weekly)  SNAP="LOGSEQCRYPT:snapshots/weekly/${DATE}" ;;
+  monthly) SNAP="LOGSEQCRYPT:snapshots/monthly/${DATE}" ;;
+  *) usage ;;
+esac
+
+# Fetch secrets
+PASS="$(security find-generic-password -a "$USER" -s rclone/logseq/crypt_passphrase -w)"
+TOKEN="$(security find-generic-password -a "$USER" -s rclone/logseq/dropbox_token -w)"
+OBSC_PASS="$(rclone obscure "$PASS")"
+
+# rclone env (no config file)
+export RCLONE_CONFIG_LOGSEQDRIVE_TYPE=dropbox
+export RCLONE_CONFIG_LOGSEQDRIVE_TOKEN="$TOKEN"
+
+export RCLONE_CONFIG_LOGSEQCRYPT_TYPE=crypt
+export RCLONE_CONFIG_LOGSEQCRYPT_REMOTE="LOGSEQDRIVE:LogseqBackup"
+export RCLONE_CONFIG_LOGSEQCRYPT_PASSWORD="$OBSC_PASS"
+export RCLONE_CONFIG_LOGSEQCRYPT_PASSWORD2="$OBSC_PASS"
+export RCLONE_CONFIG_LOGSEQCRYPT_FILENAME_ENCODING=base32768
+
+echo "Restoring snapshot: $SNAP"
+echo "Destination: $DEST"
+mkdir -p "$DEST"
+
+# Use copy (not sync) by default to avoid deleting anything in DEST unexpectedly.
+rclone copy "$SNAP" "$DEST" \
+  --fast-list \
+  --links \
+  --one-file-system
+
+echo "Restore complete."
+echo "To replace your live graph, review $DEST then (optionally):"
+echo "  rsync -a --delete \"$DEST/\" \"$HOME/Logseq/\""
