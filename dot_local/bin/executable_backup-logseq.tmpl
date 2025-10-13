@@ -84,3 +84,17 @@ prune_keep "${CRYPT}snapshots/weekly/" 4
 prune_keep "${CRYPT}snapshots/monthly/" 12
 
 echo "===== [$(TS)] backup-logseq done ====="
+prune_keep() {
+  base="$1"; keep="$2"
+  echo "[$(date +"%FT%T%z")] Pruning $base to keep $keep"
+  dirs="$(rclone lsf "$base" --dirs-only --format=p | LC_ALL=C sort || true)"
+  [ -z "$dirs" ] && return 0
+  total="$(printf "%s\n" "$dirs" | wc -l | tr -d " ")"
+  if [ "$total" -le "$keep" ]; then return 0; fi
+  del_count=$(( total - keep ))
+  printf "%s\n" "$dirs" | head -n "$del_count" | while IFS= read -r d; do
+    [ -z "$d" ] && continue
+    echo "[$(date +"%FT%T%z")] Deleting ${base}${d}"
+    rclone purge "${base}${d}"
+  done
+}
