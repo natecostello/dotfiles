@@ -13,6 +13,13 @@
   <key>WorkingDirectory</key>
   <string>{{ .chezmoi.homeDir }}</string>
 
+  <!-- Set PATH so Homebrew binaries (rclone, etc.) are found -->
+  <key>EnvironmentVariables</key>
+  <dict>
+    <key>PATH</key>
+    <string>{{ if eq .chezmoi.arch "arm64" }}/opt/homebrew/bin{{ else }}/usr/local/bin{{ end }}:/usr/bin:/bin:/usr/sbin:/sbin</string>
+  </dict>
+
   <!-- Run every day at 10:00 local time -->
   <key>StartCalendarInterval</key>
   <dict>
