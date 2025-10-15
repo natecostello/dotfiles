@@ -4,7 +4,7 @@ This guide walks through setting up a new macOS machine from scratch using this 
 
 **Estimated time:** 30-60 minutes (depending on download speeds)
 
-<!-- TODO: "Evaluate use of templates (.tmpl extension) and simplify where appropriate. Currently many files use .tmpl without actually using templating features. Only use .tmpl when chezmoi template variables {{ }} are needed." -->
+<!-- DONE: Template evaluation complete. Only LaunchAgent plist uses templates ({{ .chezmoi.homeDir }} and {{ if eq .chezmoi.arch }}). All other files renamed to remove unnecessary .tmpl extension. -->
 
 ---
 
