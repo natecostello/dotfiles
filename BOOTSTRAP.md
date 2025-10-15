@@ -197,6 +197,10 @@ This installs:
 # Essential GUI apps
 brew install --cask iterm2 visual-studio-code logseq dropbox
 
+# Fonts
+brew tap homebrew/cask-fonts
+brew install --cask font-meslo-lg-nerd-font
+
 # Dev tools
 brew install gh rclone neovim tmux fzf ripgrep jq
 
@@ -258,42 +262,21 @@ Your new shell config won't take effect until you reload.
 - Type a valid command → should turn green
 - Type invalid command → should turn red
 
-### 6.3 Configure iTerm2 (if installed)
-<!-- TODO: "Should iterm be pulling config from somewhere controlled by chezmoi? I believe it can be setup to do this (read and write settings to something in ~/). Consider marking for TODO/decision." -->
-<!-- CLAUDE: Yes! iTerm2 can read/write preferences to a custom directory.
-     Setup:
-     1. In iTerm2: Preferences → General → Preferences
-     2. Check "Load preferences from a custom folder or URL"
-     3. Set folder to: ~/.config/iterm2/
-     4. Check "Save changes to folder when iTerm2 quits"
-     
-     This creates a com.googlecode.iterm2.plist file in that folder.
-     You can then manage this file via chezmoi:
-     - chezmoi add ~/.config/iterm2/com.googlecode.iterm2.plist
-     
-     Benefits: Full iTerm2 config (colors, fonts, keybindings, profiles) version controlled
-     
-     Recommendation: Implement this - it's a great fit for chezmoi management.
--->
-<!-- TODO: "Assuming we have a way to avoid p10k config wizard running, `MesloLGS NF` should be via brew." -->
-<!-- CLAUDE: Correct! MesloLGS Nerd Font is available via Homebrew:
-     
-     First tap the fonts cask:
-       brew tap homebrew/cask-fonts
-     
-     Then install:
-       brew install --cask font-meslo-lg-nerd-font
-     
-     Add both to the Brewfile. After install, it's available system-wide.
-     iTerm2 will find it in Preferences → Profiles → Text → Font
--->
+### 6.3 Verify iTerm2 Configuration
 
-1. Open **iTerm2**
-2. Preferences → Profiles → Colors → Color Presets → Import:
-   - Consider importing Solarized Dark or another theme
-3. Preferences → Profiles → Text → Font:
-   - Install a [Nerd Font](https://www.nerdfonts.com/) for p10k icons
-   - Recommended: `MesloLGS NF` (should be installed via Brewfile: `font-meslo-lg-nerd-font`)
+iTerm2 preferences are managed via chezmoi and stored in `~/.config/iterm2/`. Your colors, fonts, profiles, and keybindings were applied automatically during Phase 4.
+
+**Verify settings loaded correctly:**
+- Open **iTerm2**
+- Check that your preferred color scheme is active
+- Verify MesloLGS NF font displays correctly (you should see all p10k icons)
+- Test any custom keybindings or profiles
+
+**To customize iTerm2 settings:**
+1. Make changes in iTerm2 Preferences
+2. Settings are automatically saved to `~/.config/iterm2/com.googlecode.iterm2.plist`
+3. Add changes to dotfiles: `chezmoi add ~/.config/iterm2/com.googlecode.iterm2.plist`
+4. Commit: `cd ~/.local/share/chezmoi && git add . && git commit -m "Update iTerm2 config"`
 
 ---
 
