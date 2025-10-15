@@ -382,7 +382,119 @@ tail ~/Library/Logs/backup-logseq.log
 
 The LaunchAgent will now run automatically daily at 10:00 AM.
 
-### 7.2 SSH Keys (if implemented)
+### 7.2 Logseq Configuration and Plugins
+<!-- TODO: "Need to add Logseq global config files to chezmoi" -->
+<!-- CLAUDE: Add these files to version control:
+     - ~/.logseq/preferences.json (app-wide preferences)
+     - ~/.logseq/config/config.edn (global config)
+     - ~/.logseq/config/plugins.edn (plugin settings)
+     
+     Command: chezmoi add ~/.logseq/preferences.json ~/.logseq/config/config.edn ~/.logseq/config/plugins.edn
+-->
+<!-- TODO: "Decide on plugin management strategy" -->
+<!-- DECISION: Choose between:
+     Option A: Full plugin tracking (recommended for <50MB total)
+       - Add entire plugin directories to chezmoi: chezmoi add --recursive ~/.logseq/plugins/
+       - Pros: Complete automation, exact versions, offline restore
+       - Cons: Larger repo size, need to remember to re-add when plugins change
+     
+     Option B: Config-only tracking
+       - Only track config files that list plugins
+       - Manually reinstall plugins from marketplace on fresh machine
+       - Pros: Minimal tracking, documentation-focused
+       - Cons: Manual reinstall needed, might get newer versions
+     
+     Current plugin size: ~20MB (10 plugins), manageable for Option A
+-->
+<!-- CLAUDE: Recommended approach - Track complete plugin directories in chezmoi
+     
+     Benefits:
+     - Complete automation (no manual reinstall)
+     - Exact plugin versions preserved
+     - Settings included with plugin code
+     - Offline restore capability
+     - 20MB is manageable for version control
+     
+     Current plugins (~20MB total):
+     - logseq-agenda (3.3MB)
+     - logseq-journals-calendar (3.4MB)
+     - logseq-reference-styles (3.6MB)
+     - logseq-osmmaps-plugin (4.4MB)
+     - logseq-plugin-show-weekday-and-week-number (2.0MB)
+     - logseq-plugin-weather (1.4MB)
+     - logseq-smartblocks (628KB)
+     - logseq-dev-theme (572KB)
+     - logseq-pdf-export-plugin (360KB)
+     - logseq-helium-plugin (148KB)
+-->
+<!-- CLAUDE: Options for tracking plugin changes:
+     
+     1. Manual periodic check (simplest):
+        - Monthly reminder to run `chezmoi diff ~/.logseq/plugins/`
+        - Explicitly review and commit changes
+     
+     2. Git pre-commit hook (automated reminder):
+        - Hook warns if plugins changed but not committed
+        - Forces attention before pushing other dotfile changes
+     
+     3. Wrapper script (semi-automated):
+        - Create ~/bin/sync-logseq.sh
+        - Checks for changes, shows diff, prompts to commit
+     
+     Recommendation: Start with manual periodic checks, add automation later if needed.
+-->
+
+Logseq configuration is split between two locations:
+- **Global app settings**: `~/.logseq/` (applies to all graphs)
+- **Graph-specific settings**: `~/Logseq/logseq/config.edn` (backed up with graph)
+
+#### Restore Graph from Backup
+
+**If `~/Logseq` doesn't exist** (fresh machine):
+
+<!-- TODO: "Create run_once_025-restore-logseq-if-missing.sh script" -->
+<!-- CLAUDE: This script should:
+     1. Check if ~/Logseq exists and has content
+     2. If not, list available snapshots (daily/weekly/monthly)
+     3. Either auto-restore latest daily OR prompt user to choose
+     4. Requires: rclone installed, secrets in Keychain
+     5. Should run after Phase 4 (after secrets loaded) but before LaunchAgent starts
+     
+     For now, manual restore instructions:
+-->
+
+```bash
+# List available snapshots
+~/.local/bin/list-logseq
+
+# Restore from most recent daily snapshot
+~/.local/bin/restore-logseq daily/latest
+
+# Or restore from specific snapshot
+~/.local/bin/restore-logseq daily/YYYY-MM-DD-HHMMSS
+```
+
+This restores your entire graph including notes, assets, and graph-specific config.
+
+<!-- TODO: Add Global Logseq Config to chezmoi:
+     chezmoi add ~/.logseq/preferences.json
+     chezmoi add ~/.logseq/config/config.edn
+     chezmoi add ~/.logseq/config/plugins.edn
+     Then review with chezmoi diff and commit
+-->
+
+<!-- TODO: Add Plugins to chezmoi:
+     After trimming unwanted plugins:
+     chezmoi add --recursive ~/.logseq/plugins/
+     Then commit with message "Add Logseq plugins"
+-->
+
+<!-- TODO: Document plugin update workflow (for later reference):
+     When installing new plugin: chezmoi add --recursive ~/.logseq/plugins/plugin-name/
+     When settings change: chezmoi diff ~/.logseq/plugins/ then chezmoi add --recursive
+-->
+
+### 7.3 SSH Keys (if implemented)
 <!-- TODO: "We should plan on including SSH config in dotfiles" -->
 <!-- CLAUDE: Agreed. Include ~/.ssh/config via chezmoi.
      
