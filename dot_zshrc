@@ -17,6 +17,10 @@ export CLICOLOR=1
 # Directories = bold cyan (Gx). Use "gx" for non-bold cyan.
 export LSCOLORS="Gxfxcxdxbxegedabagacad"
 
+# --- Default editor ---
+export EDITOR="nano"
+export VISUAL="nano"
+
 # --- Completions & history (nice defaults) ---
 autoload -Uz compinit && compinit
 HISTSIZE=5000

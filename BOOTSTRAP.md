@@ -489,42 +489,7 @@ git config --global user.name
 git config --global user.email
 ```
 
-### 7.4 Neovim Configuration (if implemented)
-<!-- TODO: "I don't currently use neovim, should I?" -->
-<!-- CLAUDE: Only if you want to. Honest assessment:
-     
-     Reasons to use Neovim:
-     - Fast, terminal-based editing (works over SSH)
-     - Extremely customizable with Lua
-     - Vim keybindings (efficient once learned)
-     - Lightweight, no GUI overhead
-     - Great for quick edits on servers
-     
-     Reasons NOT to use Neovim:
-     - Steep learning curve (vim motions, configuration)
-     - VS Code has excellent vim extension if you want vim keybindings
-     - VS Code's GUI features (debugger, integrated tools) are hard to match
-     - Time investment to configure properly (plugins, LSP, etc.)
-     
-     Recommendation: 
-     - If you're happy with VS Code, stick with it
-     - Install Neovim for quick terminal edits (`brew install neovim`)
-     - Don't invest time in heavy configuration unless you're curious
-     - Keep using VS Code as primary editor
-     
-     You can always learn Neovim later if you become interested.
-     For now: Skip heavy Neovim configuration, focus on other dotfiles.
--->
-
-If you've added Neovim config:
-
-```bash
-# First run will install plugins
-nvim
-# Run :checkhealth to verify setup
-```
-
-### 7.5 VS Code (if implemented)
+### 7.4 VS Code (if implemented)
 <!-- TODO: "I would like to figure out how to capture and control VS Code settings via chezmoi." -->
 <!-- CLAUDE: Two approaches, both valid:
      
