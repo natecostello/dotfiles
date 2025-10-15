@@ -57,7 +57,6 @@ Prevents permission issues with LaunchAgents and system files.
 ### 2.1 Install Homebrew
 Package manager for everything else.
 
-<!-- DECISION: "It makes sense to me to install brew manually to start. No change." -->
 
 ```bash
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
@@ -93,26 +92,6 @@ brew install git chezmoi lastpass-cli
 git --version
 chezmoi --version
 lpass --version
-```
-
-### 2.3 Install rclone
-Cloud storage sync tool (used by Logseq backup module).
-
-<!-- TODO: "Rclone (would also apply later to rsync, restic, etc) - Do we need this installed at this point. Is rclone required to be installed to complete Phase 4?" -->
-<!-- CLAUDE: No, rclone is NOT needed at Phase 2.
-     - The run_once scripts in Phase 4 only use `lpass` and `security` commands
-     - rclone is only needed when backup-logseq actually runs (Phase 7 or LaunchAgent)
-     - Recommendation: Move rclone installation to Phase 5 (Brewfile)
-     - Same applies to rsync, restic - install them in Phase 5 when needed
--->
-
-```bash
-brew install rclone
-```
-
-**Verify:**
-```bash
-rclone version
 ```
 
 ---
@@ -209,7 +188,7 @@ brew bundle --file=Brewfile
 ```
 
 This installs:
-- **CLI tools**: git, gh, neovim, tmux, fzf, ripgrep, etc.
+- **CLI tools**: gh, rclone, neovim, tmux, fzf, ripgrep, etc.
 - **Casks (apps)**: iTerm2, VS Code, Logseq, Dropbox, etc.
 - **Language runtimes**: pyenv, node, etc.
 
@@ -219,7 +198,7 @@ This installs:
 brew install --cask iterm2 visual-studio-code logseq dropbox
 
 # Dev tools
-brew install git gh neovim tmux fzf ripgrep jq
+brew install gh rclone neovim tmux fzf ripgrep jq
 
 # Shell enhancements
 brew install powerlevel10k zsh-autosuggestions zsh-syntax-highlighting
@@ -260,28 +239,12 @@ python --version
 ## Phase 6: Shell and Terminal Setup
 
 ### 6.1 Restart Terminal or Source Config
-<!-- DECISION: "No need for multiple options, just specify a restart." -->
 
 Your new shell config won't take effect until you reload.
 
 **Restart Terminal.app** (Cmd+Q, then reopen)
 
 ### 6.2 Verify Shell Enhancements
-<!-- TODO: "I don't like 'if first time, p10k config wizard MAY run' - do we know whether or not it will run? `.p10k.zsh` should be present, does that determine whether the config runs? If not, what does determine whether the config runs?" -->
-<!-- CLAUDE: The p10k configuration wizard will NOT run if:
-     1. The file `~/.p10k.zsh` exists (which it will after chezmoi apply)
-     2. AND the file contains valid Powerlevel10k configuration variables
-     
-     The wizard ONLY runs when:
-     - ~/.p10k.zsh is missing, OR
-     - The file exists but is empty/incomplete
-     
-     Since chezmoi applies your complete .p10k.zsh file before the first shell starts,
-     the wizard should NOT run. After terminal restart, p10k will load your existing
-     config silently with no wizard.
-     
-     Answer: It will NOT run - the config is already present and complete.
--->
 
 **Check Powerlevel10k prompt:**
 - Should see a fancy prompt with git status, time, etc.
