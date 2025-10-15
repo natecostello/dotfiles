@@ -63,16 +63,14 @@ Package manager for everything else.
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 ```
 
-Follow prompts, enter password when asked.
+Follow prompts, enter password when asked. The installer will automatically add Homebrew to your `~/.zprofile`.
 
-**Add Homebrew to PATH immediately:**
+**Activate Homebrew in current session:**
 ```bash
 # For Apple Silicon:
-echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
 eval "$(/opt/homebrew/bin/brew shellenv)"
 
 # For Intel Mac:
-echo 'eval "$(/usr/local/bin/brew shellenv)"' >> ~/.zprofile
 eval "$(/usr/local/bin/brew shellenv)"
 ```
 
@@ -82,43 +80,22 @@ brew --version
 # Should show: Homebrew 4.x.x
 ```
 
-<!-- TODO: "Should we rely on the system installed git or should we install git via brew and use that version?" -->
-<!-- CLAUDE: Recommendation - Install git via Homebrew.
-     - System git (from Xcode CLI tools) works but is often outdated
-     - Homebrew git gives you latest features and you control updates
-     - Consistency: all tools managed via brew
-     - Add to Phase 2 or Brewfile: `brew install git`
--->
+### 2.2 Install Bootstrap Tools
 
-### 2.2 Install chezmoi
-Dotfiles manager.
-
-<!-- DECISION: "It makes sense to install chezmoi and lpass next. No change." -->
+Install git, chezmoi, and LastPass CLI:
 
 ```bash
-brew install chezmoi
+brew install git chezmoi lastpass-cli
 ```
 
 **Verify:**
 ```bash
+git --version
 chezmoi --version
-```
-
-### 2.3 Install LastPass CLI
-For fetching secrets during bootstrap.
-
-<!-- DECISION: "It makes sense to install chezmoi and lpass next. No change." -->
-
-```bash
-brew install lastpass-cli
-```
-
-**Verify:**
-```bash
 lpass --version
 ```
 
-### 2.4 Install rclone
+### 2.3 Install rclone
 Cloud storage sync tool (used by Logseq backup module).
 
 <!-- TODO: "Rclone (would also apply later to rsync, restic, etc) - Do we need this installed at this point. Is rclone required to be installed to complete Phase 4?" -->
