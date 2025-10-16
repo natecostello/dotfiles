@@ -179,6 +179,42 @@ All should exist now.
 
 ### 5.1 Install from Brewfile (if implemented)
 <!-- DECISION: "We will have a brewfile, building that will be part of this effort." -->
+<!-- TODO: "Figure out how to handle brew casks that require sudo (e.g., basictex)"
+     CLAUDE: Some brew casks require sudo for installation (LaTeX distributions, system utilities, etc.)
+     
+     Options:
+     1. Interactive Brewfile install - Let brew prompt for sudo during `brew bundle`
+        - Pros: Simple, brew handles it
+        - Cons: Breaks unattended automation, user must be present
+     
+     2. Separate Brewfile section - Create separate bundle for sudo-requiring casks
+        - Example: Brewfile.sudo with just basictex
+        - Document as separate manual step in bootstrap
+        - Pros: Clear separation, user knows what needs sudo
+        - Cons: Multiple brew bundle commands
+     
+     3. Run_once script with sudo - Create run_once_050-install-sudo-casks.sh
+        - Script runs: sudo brew install --cask basictex
+        - Pros: Automated during chezmoi apply
+        - Cons: Requires sudo during chezmoi apply (not always desirable)
+     
+     4. Document as post-bootstrap step - List sudo-requiring casks in Phase 8
+        - Keep them out of Brewfile entirely
+        - Manual install with instructions
+        - Pros: No sudo needed during main bootstrap
+        - Cons: Manual step, might be forgotten
+     
+     5. Quarto TinyTeX alternative (for Quarto users specifically)
+        - Skip basictex entirely, use Quarto's built-in LaTeX installer
+        - Create run_once_055-install-tinytex.sh with: quarto install tinytex
+        - Pros: No sudo required, lighter weight (~100MB vs basictex ~7GB), managed by Quarto
+        - Cons: Only works if using Quarto, not a general TeX solution
+        - Requires: Quarto already installed via brew (brew install quarto)
+     
+     Recommendation: Option 5 if primary TeX use is for Quarto. Otherwise Option 2 or 4 
+     depending on how many sudo casks you have. If just basictex, document as separate step. 
+     If many, create Brewfile.sudo.
+-->
 
 If you've added a `Brewfile` to manage apps:
 
