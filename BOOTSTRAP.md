@@ -596,7 +596,67 @@ pbcopy < ~/.ssh/id_ed25519.pub
 
 Add to GitHub: **Settings → SSH and GPG keys → New SSH key**
 
-### 7.3 Git Configuration (already applied)
+### 7.4 Custom Python Utilities
+
+**Prerequisites:**
+- pipx installed (via Homebrew in Phase 5)
+- SSH keys set up (for private repositories)
+
+These utility scripts are installed via pipx for isolated, global access.
+
+**Installation:**
+
+During `chezmoi apply`, the `run_once_060-install-python-utilities.sh` script automatically installs:
+
+1. **toggl-to-zoho** (public): Converts Toggl time tracking CSV exports to Zoho Books format
+   - Repository: https://github.com/natecostello/util-toggl-to-zoho
+   - Command: `toggl-to-zoho input.csv output.csv`
+
+2. **priv-allocate** (private): Private allocation utility
+   - Repository: https://github.com/natecostello/util-priv-allocate (requires SSH access)
+   - Command: `priv-allocate` (see repo for usage)
+
+**Manual Installation (if needed):**
+
+```bash
+# Install toggl-to-zoho
+pipx install git+https://github.com/natecostello/util-toggl-to-zoho.git
+
+# Install priv-allocate (requires SSH key with GitHub access)
+pipx install git+ssh://git@github.com/natecostello/util-priv-allocate.git
+```
+
+**Verify Installation:**
+
+```bash
+# Check commands are available
+which toggl-to-zoho
+which priv-allocate
+
+# Check versions/help
+toggl-to-zoho --version
+priv-allocate --help
+```
+
+**Upgrading:**
+
+```bash
+# Upgrade individual utility
+pipx upgrade toggl-to-zoho
+pipx upgrade priv-allocate
+
+# Upgrade all pipx packages
+pipx upgrade-all
+```
+
+**Uninstalling:**
+
+```bash
+pipx uninstall toggl-to-zoho
+pipx uninstall priv-allocate
+```
+
+### 7.5 Git Configuration (already applied)
 <!-- TODO: "Should we consider signing commits? What key is used for that? Does setup for that belong here?" -->
 <!-- CLAUDE: Yes, commit signing is good practice, especially for open source.
      
@@ -637,7 +697,7 @@ git config --global user.name
 git config --global user.email
 ```
 
-### 7.4 VS Code (if implemented)
+### 7.6 VS Code (if implemented)
 <!-- TODO: "I would like to figure out how to capture and control VS Code settings via chezmoi." -->
 <!-- CLAUDE: Two approaches, both valid:
      
@@ -724,6 +784,7 @@ Go through this list to ensure everything is working:
 - [ ] **Logseq backup**: LaunchAgent loaded, manual test successful
 - [ ] **Secrets**: All needed items in Keychain
 - [ ] **Scripts**: `~/.local/bin/*` executables work
+- [ ] **Python utilities**: `toggl-to-zoho --version` and `priv-allocate --help` work
 - [ ] **VS Code**: Extensions installed and settings synced (if applicable)
 
 ---
