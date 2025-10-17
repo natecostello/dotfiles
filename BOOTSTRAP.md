@@ -140,10 +140,35 @@ chezmoi init --apply https://github.com/natecostello/dotfiles.git
 1. Clones the repo to `~/.local/share/chezmoi`
 2. Processes all templates (`.tmpl` files)
 3. Copies files to their target locations (`dot_*` → `~/.*`)
-4. Runs all `run_once_*` scripts in order:
+4. Runs all `run_once_*` scripts in numerical/alphabetical order:
    - `run_once_020-iterm2-shell-integration.sh` → Installs iTerm2 integration
+   - `run_once_060-install-python-utilities.sh` → Attempts public Python utilities (may fail if pipx not installed)
+   - `run_once_070-install-private-python-utilities.sh` → Attempts private Python utilities (will fail if SSH keys not configured)
    - `run_once_dropbox_token_to_keychain.sh` → Copies Dropbox token to Keychain
    - `run_once_logseq_crypt_to_keychain.sh` → Copies rclone passphrase to Keychain
+
+**Important: Run_Once Script Coordination**
+
+Run_once scripts execute during `chezmoi apply` in filename order. Some scripts have dependencies that may not be met on first run:
+
+- **Script 060 (Public Python utilities)**: Requires pipx (installed in Phase 5)
+  - First `chezmoi apply`: Will fail with clear error message if pipx not installed
+  - After Phase 5: Re-run `chezmoi apply` to install toggl-to-zoho
+
+- **Script 070 (Private Python utilities)**: Requires pipx AND SSH keys (set up in Section 7.3)
+  - First `chezmoi apply`: Will fail if SSH keys not configured
+  - After Section 7.3: Re-run `chezmoi apply` to install allocate (private repo)
+
+Scripts that succeed are tracked and won't re-run. Failed scripts will retry on next `chezmoi apply`.
+
+**To re-run a specific script after fixing dependencies:**
+```bash
+# Remove state file to force re-run
+rm ~/.local/share/chezmoi/.chezmoistate.boltdb
+
+# Or use --force flag
+chezmoi apply --force
+```
 
 **Expected output:**
 ```
@@ -276,6 +301,15 @@ brew install pyenv
 ```
 
 **Note:** `pipx` is required for the Python utilities in Section 7.4.
+
+**After installing pipx**, re-run chezmoi apply to retry any failed run_once scripts:
+```bash
+chezmoi apply
+```
+
+This will execute `run_once_060-install-python-utilities.sh` to install public Python utilities (toggl-to-zoho).
+
+**Note**: Script 070 (private utilities) will still fail until SSH keys are configured in Section 7.3.
 
 ### 5.2 Configure pyenv (if applicable)
 <!-- TODO: "I'm not sold on pyenv. I thought I might need it, but am open to alternative approaches. Lets mark that as something that needs attention and a decision." -->
@@ -626,6 +660,13 @@ pbcopy < ~/.ssh/id_ed25519.pub
 
 Add to GitHub: **Settings → SSH and GPG keys → New SSH key**
 
+**After adding SSH key to GitHub**, re-run chezmoi apply to install private Python utilities:
+```bash
+chezmoi apply
+```
+
+This will execute `run_once_070-install-private-python-utilities.sh` to install allocate (private repo).
+
 ### 7.4 Custom Python Utilities
 
 **Prerequisites:**
@@ -636,15 +677,19 @@ These utility scripts are installed via pipx for isolated, global access.
 
 **Installation:**
 
-During `chezmoi apply`, the `run_once_060-install-python-utilities.sh` script automatically installs:
+Python utilities are installed via two separate run_once scripts:
 
-1. **toggl-to-zoho** (public): Converts Toggl time tracking CSV exports to Zoho Books format
+**Public utilities** (`run_once_060`, runs after Phase 5):
+1. **toggl-to-zoho**: Converts Toggl time tracking CSV exports to Zoho Books format
    - Repository: https://github.com/natecostello/util-toggl-to-zoho
    - Command: `toggl-to-zoho input.csv output.csv`
+   - Installs during: `chezmoi apply` after pipx is installed (Phase 5)
 
-2. **priv-allocate** (private): Private allocation utility
+**Private utilities** (`run_once_070`, runs after Section 7.3):
+2. **allocate**: Private allocation utility
    - Repository: https://github.com/natecostello/util-priv-allocate (requires SSH access)
-   - Command: `priv-allocate` (see repo for usage)
+   - Command: `allocate` (see repo for usage)
+   - Installs during: `chezmoi apply` after SSH keys are configured (Section 7.3)
 
 **Manual Installation (if needed):**
 

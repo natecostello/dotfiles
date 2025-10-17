@@ -25,32 +25,12 @@ else
     fi
 fi
 
-# Install priv-allocate (private repository - requires SSH key)
-echo "Checking priv-allocate..."
-if command -v priv-allocate &> /dev/null; then
-    echo "  priv-allocate is already installed"
-else
-    echo "  Installing priv-allocate from GitHub (private repo)..."
-    # Check if SSH key exists and is added to ssh-agent
-    if [ ! -f ~/.ssh/id_ed25519 ]; then
-        echo "  ✗ SSH key not found at ~/.ssh/id_ed25519"
-        echo "  Please set up SSH keys first (see Section 7.3)"
-        exit 1
-    fi
-    
-    if pipx install git+ssh://git@github.com/natecostello/util-priv-allocate.git; then
-        echo "  ✓ priv-allocate installed successfully"
-    else
-        echo "  ✗ Failed to install priv-allocate"
-        echo "  Make sure your SSH key is added to GitHub and has access to the repository"
-        exit 1
-    fi
-fi
-
 echo ""
-echo "Python utilities installation complete!"
+echo "Public Python utilities installation complete!"
 echo ""
 echo "Installed commands:"
 echo "  - toggl-to-zoho: Convert Toggl time tracking CSV to Zoho Books format"
-echo "  - priv-allocate: Private allocation utility"
+echo ""
+echo "Note: Private repository utilities (allocate) are installed separately"
+echo "      in run_once_070 after SSH keys are configured (Section 7.3)"
 echo ""
