@@ -179,6 +179,30 @@ All should exist now.
 
 ### 5.1 Install from Brewfile (if implemented)
 <!-- DECISION: "We will have a brewfile, building that will be part of this effort." -->
+<!-- TODO: "Create Brewfile with essential packages including pipx"
+     CLAUDE: The Brewfile should include:
+     - CLI tools: gh, rclone, fzf, ripgrep, jq
+     - Python tools: pipx (required for Section 7.4 utilities)
+     - Shell: powerlevel10k, zsh-autosuggestions, zsh-syntax-highlighting
+     - Casks: iterm2, visual-studio-code, logseq, dropbox
+     - Fonts: font-meslo-lg-nerd-font (via homebrew/cask-fonts tap)
+     - Optional: pyenv, neovim, tmux (depending on user preferences)
+     
+     Example Brewfile format:
+     ```
+     # Taps
+     tap "homebrew/cask-fonts"
+     
+     # CLI Tools
+     brew "gh"
+     brew "rclone"
+     brew "pipx"  # Required for Python utilities
+     
+     # Casks
+     cask "iterm2"
+     cask "visual-studio-code"
+     ```
+-->
 <!-- TODO: "Figure out how to handle brew casks that require sudo (e.g., basictex)"
      CLAUDE: Some brew casks require sudo for installation (LaTeX distributions, system utilities, etc.)
      
@@ -227,6 +251,7 @@ This installs:
 - **CLI tools**: gh, rclone, neovim, tmux, fzf, ripgrep, etc.
 - **Casks (apps)**: iTerm2, VS Code, Logseq, Dropbox, etc.
 - **Language runtimes**: pyenv, node, etc.
+- **Python tools**: pipx (for isolated Python app installations)
 
 **If no Brewfile yet**, install manually:
 ```bash
@@ -240,12 +265,17 @@ brew install --cask font-meslo-lg-nerd-font
 # Dev tools
 brew install gh rclone neovim tmux fzf ripgrep jq
 
+# Python package installer (required for Section 7.4)
+brew install pipx
+
 # Shell enhancements
 brew install powerlevel10k zsh-autosuggestions zsh-syntax-highlighting
 
 # Python management
 brew install pyenv
 ```
+
+**Note:** `pipx` is required for the Python utilities in Section 7.4.
 
 ### 5.2 Configure pyenv (if applicable)
 <!-- TODO: "I'm not sold on pyenv. I thought I might need it, but am open to alternative approaches. Lets mark that as something that needs attention and a decision." -->
