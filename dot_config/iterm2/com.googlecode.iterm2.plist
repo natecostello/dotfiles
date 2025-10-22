@@ -16,6 +16,8 @@
 	<integer>2</integer>
 	<key>AIVectorStore</key>
 	<integer>1</integer>
+	<key>AIVendor</key>
+	<integer>2</integer>
 	<key>AiMaxTokens</key>
 	<integer>1000000</integer>
 	<key>AiModel</key>
@@ -24,16 +26,6 @@
 	<integer>32768</integer>
 	<key>AitermURL</key>
 	<string>https://api.openai.com/v1/responses</string>
-	<key>AppleAntiAliasingThreshold</key>
-	<integer>1</integer>
-	<key>ApplePressAndHoldEnabled</key>
-	<false/>
-	<key>AppleScrollAnimationEnabled</key>
-	<integer>0</integer>
-	<key>AppleSmoothFixedFontsSizeThreshold</key>
-	<integer>1</integer>
-	<key>AppleWindowTabbingMode</key>
-	<string>manual</string>
 	<key>Default Bookmark Guid</key>
 	<string>38BB81EB-8548-498D-B6FF-0A804E9EAF89</string>
 	<key>HapticFeedbackForEsc</key>
@@ -1112,7 +1104,7 @@
 			<key>Screen</key>
 			<integer>-1</integer>
 			<key>Scrollback Lines</key>
-			<integer>1000</integer>
+			<integer>0</integer>
 			<key>Selected Text Color</key>
 			<dict>
 				<key>Alpha Component</key>
