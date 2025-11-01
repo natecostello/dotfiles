@@ -48,7 +48,9 @@ Prevents permission issues with LaunchAgents and system files.
 
 1. **System Settings → Privacy & Security → Full Disk Access**
 2. Click the **+** button
-3. Add **Terminal.app** (and **iTerm2** if you'll install it)
+3. Add **Terminal.app**
+
+**Note:** You'll grant iTerm2 Full Disk Access later in Phase 5 after installing it.
 
 ---
 
@@ -76,7 +78,7 @@ eval "$(/usr/local/bin/brew shellenv)"
 **Verify:**
 ```bash
 brew --version
-# Should show: Homebrew 4.x.x
+# Should show: Homebrew 4.x.x or later
 ```
 
 ### 2.2 Install Bootstrap Tools
@@ -141,43 +143,35 @@ chezmoi init --apply https://github.com/natecostello/dotfiles.git
 2. Processes all templates (`.tmpl` files)
 3. Copies files to their target locations (`dot_*` → `~/.*`)
 4. Runs all `run_once_*` scripts in numerical/alphabetical order:
-   - `run_once_020-iterm2-shell-integration.sh` → Installs iTerm2 integration
-   - `run_once_060-install-python-utilities.sh` → Attempts public Python utilities (may fail if pipx not installed)
-   - `run_once_070-install-private-python-utilities.sh` → Attempts private Python utilities (will fail if SSH keys not configured)
-   - `run_once_dropbox_token_to_keychain.sh` → Copies Dropbox token to Keychain
-   - `run_once_logseq_crypt_to_keychain.sh` → Copies rclone passphrase to Keychain
+   - `run_once_020-iterm2-shell-integration.sh` → Installs iTerm2 shell integration files (before iTerm2 app is installed in Phase 5)
+   - `run_once_060-install-python-utilities.sh` → Will fail (pipx not yet installed, succeeds after Phase 5)
+   - `run_once_070-install-private-python-utilities.sh` → Will fail (pipx not yet installed and SSH keys not yet configured, succeeds after Section 7.3)
+   - `run_once_dropbox_token_to_keychain.sh` → Copies Dropbox token from LastPass to Keychain
+   - `run_once_logseq_crypt_to_keychain.sh` → Copies rclone passphrase from LastPass to Keychain
 
-**Important: Run_Once Script Coordination**
+**Important: run_once script coordination**
 
-Run_once scripts execute during `chezmoi apply` in filename order. Some scripts have dependencies that may not be met on first run:
+Run_once scripts execute during `chezmoi apply` in filename order. Some scripts have dependencies that will not be met on this first run.  Failed scripts will automatically retry on the next `chezmoi apply`.  Scripts that succeed are tracked and won't re-run unless forced.
 
-- **Script 060 (Public Python utilities)**: Requires pipx (installed in Phase 5)
-  - First `chezmoi apply`: Will fail with clear error message if pipx not installed
-  - After Phase 5: Re-run `chezmoi apply` to install toggl-to-zoho
-
-- **Script 070 (Private Python utilities)**: Requires pipx AND SSH keys (set up in Section 7.3)
-  - First `chezmoi apply`: Will fail if SSH keys not configured
-  - After Section 7.3: Re-run `chezmoi apply` to install allocate (private repo)
-
-Scripts that succeed are tracked and won't re-run. Failed scripts will retry on next `chezmoi apply`.
-
-**To re-run a specific script after fixing dependencies:**
-```bash
-# Remove state file to force re-run
-rm ~/.local/share/chezmoi/.chezmoistate.boltdb
-
-# Or use --force flag
-chezmoi apply --force
-```
-
-**Expected output:**
+**Expected output on fresh install:**
 ```
 Cloning into '/Users/you/.local/share/chezmoi'...
 remote: Enumerating objects...
 [...]
+iTerm2 shell integration installed.
+Installing Python utility scripts...
+ERROR: pipx is not installed. Please install it first:
+  brew install pipx
+Installing private Python utility scripts...
+ERROR: pipx is not installed. Please install it first:
+  brew install pipx
 Saved Dropbox token to Keychain service: rclone/logseq/dropbox_token
 Saved passphrase to Keychain service: rclone/logseq/crypt_passphrase
-iTerm2 shell integration installed.
+```
+
+**To force re-run of all run_once scripts (rarely needed):**
+```bash
+chezmoi apply --force
 ```
 
 ### 4.2 Verify Files Were Applied
@@ -310,6 +304,12 @@ chezmoi apply
 This will execute `run_once_060-install-python-utilities.sh` to install public Python utilities (toggl-to-zoho).
 
 **Note**: Script 070 (private utilities) will still fail until SSH keys are configured in Section 7.3.
+
+**Important - Grant iTerm2 Full Disk Access:**
+Grant iTerm2 Full Disk Access now to prevent permission issues:
+1. **System Settings → Privacy & Security → Full Disk Access**
+2. Click the **+** button
+3. Add **iTerm2.app** from `/Applications`
 
 ### 5.2 Configure pyenv (if applicable)
 <!-- TODO: "I'm not sold on pyenv. I thought I might need it, but am open to alternative approaches. Lets mark that as something that needs attention and a decision." -->
@@ -513,19 +513,15 @@ The LaunchAgent will now run automatically daily at 10:00 AM.
      - Exact plugin versions preserved
      - Settings included with plugin code
      - Offline restore capability
-     - 20MB is manageable for version control
+     - 8.6MB is very manageable for version control
      
-     Current plugins (~20MB total):
-     - logseq-agenda (3.3MB)
-     - logseq-journals-calendar (3.4MB)
+     Current plugins (~8.6MB total):
      - logseq-reference-styles (3.6MB)
-     - logseq-osmmaps-plugin (4.4MB)
      - logseq-plugin-show-weekday-and-week-number (2.0MB)
      - logseq-plugin-weather (1.4MB)
      - logseq-smartblocks (628KB)
      - logseq-dev-theme (572KB)
      - logseq-pdf-export-plugin (360KB)
-     - logseq-helium-plugin (148KB)
 -->
 <!-- CLAUDE: Options for tracking plugin changes:
      
@@ -735,16 +731,28 @@ pipx uninstall priv-allocate
 <!-- TODO: "Should we consider signing commits? What key is used for that? Does setup for that belong here?" -->
 <!-- CLAUDE: Yes, commit signing is good practice, especially for open source.
      
-     Two options:
+     IMPORTANT: Use separate SSH keys for authentication vs signing:
+     - Authentication key (~/.ssh/id_ed25519): Machine-specific, identifies THIS computer to GitHub
+       * Unique per machine for audit trail
+       * Revoke when machine is decommissioned/compromised
+       * Title: "MacBook Pro 2025", "Work Desktop", etc.
      
-     1. SSH Signing (Recommended - Simpler):
-        - Uses the same SSH key you already have (id_ed25519)
+     - Signing key (~/.ssh/id_ed25519_signing): Person-specific, identifies YOU as commit author
+       * Same key across all your machines for consistency
+       * Backed up securely, restored on new machines
+       * Persists across hardware changes
+       * Title: "Your Name's Signing Key"
+     
+     Two options for signing:
+     
+     1. SSH Signing (Recommended - Simpler than GPG):
+        - Generate separate signing key: ssh-keygen -t ed25519 -C "signing@email.com" -f ~/.ssh/id_ed25519_signing
         - GitHub supports this natively (since 2021)
         - Setup in .gitconfig:
           [gpg]
               format = ssh
           [user]
-              signingkey = ~/.ssh/id_ed25519.pub
+              signingkey = ~/.ssh/id_ed25519_signing.pub
           [commit]
               gpgsign = true
           [tag]
@@ -755,14 +763,18 @@ pipx uninstall priv-allocate
         - More setup, key management more complex
         - Widely supported but overkill for most use cases
      
-     Recommendation: Use SSH signing. Add the config above to your .gitconfig template.
+     Recommendation: Use SSH signing with separate keys.
      
-     To upload SSH signing key to GitHub (different from auth key upload):
-       gh ssh-key add ~/.ssh/id_ed25519.pub --type signing --title "MacBook Pro Signing Key"
+     To upload SSH signing key to GitHub:
+       gh ssh-key add ~/.ssh/id_ed25519_signing.pub --type signing --title "Your Name Signing Key"
      
      Or manually: GitHub → Settings → SSH and GPG keys → New SSH key → Key type: Signing Key
      
-     Yes, this belongs in section 7.3 (Git Configuration).
+     Key management strategy:
+     - Authentication keys: One per machine, rotate when hardware changes
+     - Signing key: One per person, backup securely (1Password, encrypted USB), restore on all machines
+     
+     Yes, this belongs in section 7.5 (Git Configuration).
 -->
 
 Your `.gitconfig` is already in place. Verify:
