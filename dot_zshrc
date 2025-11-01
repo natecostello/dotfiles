@@ -28,13 +28,7 @@ SAVEHIST=5000
 HISTFILE=~/.zsh_history
 setopt share_history hist_ignore_dups
 
-# --- pyenv setup ---
-export PYENV_ROOT="$HOME/.pyenv"
-export PATH="$PYENV_ROOT/bin:$PATH"
-eval "$(pyenv init --path)"
-eval "$(pyenv init -)"
-
-# --- iTerm2 shell integration (enables “select command/output”, marks, etc.) ---
+# --- iTerm2 shell integration (enables "select command/output", marks, etc.) ---
 [[ -r ~/.iterm2_shell_integration.zsh ]] && source ~/.iterm2_shell_integration.zsh
 
 # --- zsh-autosuggestions ---

@@ -5,3 +5,6 @@ alias drawio='/Applications/draw.io.app/Contents/MacOS/draw.io'
 
 # Add and "alias" for tailscale
 alias tailscale="/Applications/Tailscale.app/Contents/MacOS/Tailscale"
+
+# Add ~/.local/bin to PATH (for pipx utilities and user scripts)
+export PATH="$PATH:$HOME/.local/bin"

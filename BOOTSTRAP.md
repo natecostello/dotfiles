@@ -199,11 +199,11 @@ All should exist now.
 <!-- TODO: "Create Brewfile with essential packages including pipx"
      CLAUDE: The Brewfile should include:
      - CLI tools: gh, rclone, fzf, ripgrep, jq
-     - Python tools: pipx (required for Section 7.4 utilities)
+     - Python tools: pipx (required for Section 7.4 utilities, automatically includes python)
      - Shell: powerlevel10k, zsh-autosuggestions, zsh-syntax-highlighting
      - Casks: iterm2, visual-studio-code, logseq, dropbox
      - Fonts: font-meslo-lg-nerd-font (via homebrew/cask-fonts tap)
-     - Optional: pyenv, neovim, tmux (depending on user preferences)
+     - Optional: neovim, tmux (depending on user preferences)
      
      Example Brewfile format:
      ```
@@ -267,8 +267,8 @@ brew bundle --file=Brewfile
 This installs:
 - **CLI tools**: gh, rclone, neovim, tmux, fzf, ripgrep, etc.
 - **Casks (apps)**: iTerm2, VS Code, Logseq, Dropbox, etc.
-- **Language runtimes**: pyenv, node, etc.
-- **Python tools**: pipx (for isolated Python app installations)
+- **Language runtimes**: node, etc.
+- **Python tools**: pipx (for isolated Python app installations, includes Python)
 
 **If no Brewfile yet**, install manually:
 ```bash
@@ -287,12 +287,9 @@ brew install pipx
 
 # Shell enhancements
 brew install powerlevel10k zsh-autosuggestions zsh-syntax-highlighting
-
-# Python management
-brew install pyenv
 ```
 
-**Note:** `pipx` is required for the Python utilities in Section 7.4.
+**Note:** `pipx` is required for the Python utilities in Section 7.4. Pipx will automatically install Python as a dependency.
 
 **After installing pipx**, re-run chezmoi apply to retry any failed run_once scripts:
 ```bash
@@ -309,32 +306,20 @@ Grant iTerm2 Full Disk Access now to prevent permission issues:
 2. Click the **+** button
 3. Add **iTerm2.app** from `/Applications`
 
-### 5.2 Configure pyenv (if applicable)
-<!-- TODO: "I'm not sold on pyenv. I thought I might need it, but am open to alternative approaches. Lets mark that as something that needs attention and a decision." -->
-<!-- CLAUDE: Options for Python management:
-     1. Homebrew Python (`brew install python@3.12`) - Simpler, single version, good for most use cases
-     2. pyenv - Multiple versions, project-specific Python versions, more complex
-     3. uv/rye - Newer Python project managers, very fast, but newer ecosystem
-     
-     Recommendation: If you don't need multiple Python versions for different projects, 
-     `brew install python` is simpler and sufficient. Only use pyenv if you need to switch 
-     between Python 3.10, 3.11, 3.12 for different projects.
-     
-     For single-user dev machine with one main Python version: Homebrew Python is cleaner.
--->
+### 5.2 Verify Python Installation
 
-The dotfiles already set up pyenv in `.zshrc`, but you need to install a Python version:
-
-```bash
-pyenv install 3.12.0
-pyenv global 3.12.0
-```
+Python is managed via Homebrew (installed as dependency of pipx in Phase 5.1).
 
 **Verify:**
 ```bash
-python --version
-# Should show: Python 3.12.0
+which python3
+# Should show: /opt/homebrew/bin/python3 (or /usr/local/bin/python3 on Intel)
+
+python3 --version
+# Should show: Python 3.14.x (or whatever Homebrew's current version is)
 ```
+
+**Note:** Python utilities installed via pipx (Section 7.4) automatically use Homebrew's Python.
 
 ---
 
